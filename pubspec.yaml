@@ -14,6 +14,8 @@ dependencies:
   google_fonts: ^6.1.0
   curved_labeled_navigation_bar: ^2.0.2
   cupertino_icons: ^1.0.8
+  flutter_onboarding_slider: ^1.0.11
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -28,6 +30,9 @@ flutter:
   # Assets
   assets:
     - assets/icon.png
+    - assets/splash1.png
+    - assets/splash2.png
+    - assets/splash3.png
 
 # Flutter Launcher Icons Configuration
 flutter_launcher_icons:
