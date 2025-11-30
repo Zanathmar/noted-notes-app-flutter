@@ -14,7 +14,12 @@ class NotesService {
   }
 
   // Create new note
-  Future<Note> createNote(String title, String content) async {
+  Future<Note> createNote(
+    String title, 
+    String content, {
+    String? category,
+    int? colorIndex,
+  }) async {
     final userId = supabase.auth.currentUser!.id;
     
     final response = await supabase
@@ -23,6 +28,8 @@ class NotesService {
           'user_id': userId,
           'title': title,
           'content': content,
+          'category': category,
+          'color_index': colorIndex,
         })
         .select()
         .single();
@@ -31,12 +38,20 @@ class NotesService {
   }
 
   // Update existing note
-  Future<void> updateNote(String id, String title, String content) async {
+  Future<void> updateNote(
+    String id, 
+    String title, 
+    String content, {
+    String? category,
+    int? colorIndex,
+  }) async {
     await supabase
         .from('notes')
         .update({
           'title': title,
           'content': content,
+          'category': category,
+          'color_index': colorIndex,
           'updated_at': DateTime.now().toIso8601String(),
         })
         .eq('id', id);

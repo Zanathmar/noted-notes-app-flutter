@@ -19,20 +19,60 @@ class NotesListScreen extends StatefulWidget {
 class _NotesListScreenState extends State<NotesListScreen> {
   final NotesService _notesService = NotesService();
   List<Note> _notes = [];
+  List<Note> _filteredNotes = [];
   bool _isLoading = true;
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = 'All';
 
   // Updated sticky note colors based on your palette
   final List<Color> _stickyColors = [
-    const Color(0xFF6798C0), // Blue
+    const Color(0xFFB5A6D9), // Purple
+    const Color(0xFFA8E6A3), // Light green
     const Color(0xFF99D6EA), // Light blue
     const Color(0xFFFDD85D), // Yellow
     const Color(0xFFFDC921), // Orange
+  ];
+
+  final List<String> _categories = [
+    'All',
+    'Personal',
+    'Work',
+    'Fitness',
   ];
 
   @override
   void initState() {
     super.initState();
     _loadNotes();
+    _searchController.addListener(_filterNotes);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterNotes() {
+    setState(() {
+      List<Note> filtered = _notes;
+      
+      // Filter by category
+      if (_selectedCategory != 'All') {
+        filtered = filtered.where((note) => note.category == _selectedCategory).toList();
+      }
+      
+      // Filter by search
+      if (_searchController.text.isNotEmpty) {
+        filtered = filtered.where((note) {
+          return note.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+              note.content.toLowerCase().contains(_searchController.text.toLowerCase());
+        }).toList();
+      }
+      
+      _filteredNotes = filtered;
+    });
   }
 
   Future<void> _loadNotes() async {
@@ -41,6 +81,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
       final notes = await _notesService.getNotes();
       setState(() {
         _notes = notes;
+        _filteredNotes = notes;
         _isLoading = false;
       });
     } catch (e) {
@@ -89,7 +130,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
               color: const Color(0xFFFFFDF7),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: const Color(0xFFFDC921).withOpacity(0.3),
+                color: const Color.fromARGB(255, 233, 204, 42).withOpacity(0.3),
                 width: 2,
               ),
               boxShadow: [
@@ -107,7 +148,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFDD85D).withOpacity(0.3),
+                    color: const Color.fromARGB(255, 237, 214, 42).withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -147,7 +188,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(46),
+                            borderRadius: BorderRadius.circular(100),
                             side: BorderSide(
                               color: Colors.black.withOpacity(0.1),
                               width: 1.5,
@@ -169,12 +210,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context, true),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFDC921),
+                          backgroundColor: const Color.fromARGB(255, 244, 203, 19),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(46),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                         ),
                         child: const Text(
@@ -206,10 +247,20 @@ class _NotesListScreenState extends State<NotesListScreen> {
   }
 
   void _showSearch() {
-    _showCustomSnackBar(
-      'Search feature coming soon!',
-      icon: Icons.search_rounded,
-    );
+    setState(() {
+      _isSearching = true;
+    });
+    // Auto-focus the search field after a brief delay
+    Future.delayed(const Duration(milliseconds: 100), () {
+      FocusScope.of(context).requestFocus(FocusNode());
+    });
+  }
+  
+  void _hideSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchController.clear();
+    });
   }
 
   void _showCustomSnackBar(String message, {IconData? icon, bool isError = false}) {
@@ -223,10 +274,10 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Icon(
-                  icon ?? (isError ? Icons.error_outline : Icons.info_outline),
+                  icon ?? (isError ? Icons.error_outline_rounded : Icons.info_outline_rounded),
                   color: Colors.white,
                   size: 22,
                 ),
@@ -237,7 +288,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                   message,
                   style: const TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
@@ -250,12 +301,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
             : const Color(0xFF6798C0),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(100),
         ),
         margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         duration: const Duration(seconds: 3),
-        elevation: 4,
+        elevation: 6,
       ),
     );
   }
@@ -273,6 +324,10 @@ class _NotesListScreenState extends State<NotesListScreen> {
   }
 
   Color _getColorForIndex(int index) {
+    // Use the note's color index if available
+    if (index < _filteredNotes.length && _filteredNotes[index].colorIndex != null) {
+      return _stickyColors[_filteredNotes[index].colorIndex! % _stickyColors.length];
+    }
     return _stickyColors[index % _stickyColors.length];
   }
 
@@ -280,77 +335,137 @@ class _NotesListScreenState extends State<NotesListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFDF7),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(),
-            
-            // Content
-            Expanded(
-              child: _isLoading
-                  ? Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFFFDC921),
-                          ),
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    )
-                  : _notes.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
-                          onRefresh: _loadNotes,
-                          color: const Color(0xFFFDC921),
-                          backgroundColor: Colors.white,
-                          strokeWidth: 3,
-                          displacement: 60,
-                          child: SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                for (int i = 0; i < _notes.length; i++)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: StickyNoteCard(
-                                      note: _notes[i],
-                                      color: _getColorForIndex(i),
-                                      onTap: () async {
-                                        await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => NoteEditorScreen(note: _notes[i]),
-                                          ),
-                                        );
-                                        _loadNotes();
-                                      },
-                                      onDelete: () => _deleteNote(_notes[i].id),
-                                    ),
-                                  ),
-                                const SizedBox(height: 100), // Space for bottom nav
+      body: Stack(
+        children: [
+          // Decorative Background Elements - Simple shapes
+          Positioned(
+            top: -30,
+            right: -30,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB5D5E8).withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 100,
+            left: -40,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4E7F0).withOpacity(0.25),
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 250,
+            right: 20,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB5D5E8).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 200,
+            right: 30,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4E7F0).withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          
+          // Main Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(),
+                
+                // Search Bar
+                if (_isSearching) _buildSearchBar(),
+                
+                // Category Pills
+                _buildCategoryPills(),
+                
+                // Content
+                Expanded(
+                  child: _isLoading
+                      ? Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
                               ],
                             ),
+                            child: const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF8AB4D5),
+                              ),
+                              strokeWidth: 3,
+                            ),
                           ),
-                        ),
+                        )
+                      : _filteredNotes.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: _loadNotes,
+                              color: const Color(0xFF8AB4D5),
+                              backgroundColor: Colors.white,
+                              strokeWidth: 3,
+                              displacement: 60,
+                              child: GridView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 0.85,
+                                ),
+                                itemCount: _filteredNotes.length,
+                                itemBuilder: (context, i) {
+                                  return StickyNoteCard(
+                                    note: _filteredNotes[i],
+                                    color: _getColorForIndex(i),
+                                    onTap: () async {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => NoteEditorScreen(note: _filteredNotes[i]),
+                                        ),
+                                      );
+                                      _loadNotes();
+                                    },
+                                    onDelete: () => _deleteNote(_filteredNotes[i].id),
+                                  );
+                                },
+                              ),
+                            ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       extendBody: true,
       bottomNavigationBar: Stack(
@@ -426,12 +541,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 width: 65,
                 height: 65,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFDC921),
+                  color: const Color.fromARGB(255, 119, 183, 233),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFDC921).withOpacity(0.4),
-                      blurRadius: 12,
+                      color: const Color(0xFF8AB4D5).withOpacity(0.3),
+                      blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -451,19 +566,159 @@ class _NotesListScreenState extends State<NotesListScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Notes',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your Notes',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: const Color(0xFF8AB4D5).withOpacity(0.4),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: 'Search notes...',
+            hintStyle: TextStyle(
+              color: Colors.black.withOpacity(0.4),
+              fontSize: 15,
+            ),
+            prefixIcon: const Icon(
+              Icons.search_rounded, 
+              color: Color(0xFF8AB4D5),
+              size: 24,
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                    onPressed: _hideSearch,
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                    onPressed: _hideSearch,
+                  ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          ),
+          style: const TextStyle(
+            fontSize: 15,
+            color: Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryPills() {
+    return Container(
+      height: 67,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.5),
+      ),
+      child: ListView.builder(
+        
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final category = _categories[index];
+          final isSelected = _selectedCategory == category;
+          
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = category;
+                  _filterNotes();
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF8AB4D5) : Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: isSelected 
+                        ? const Color(0xFF8AB4D5) 
+                        : Colors.black.withOpacity(0.9),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    // Main 3D shadow (bottom-right)
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.9),
+                      
+                    ),
+                    // Depth shadow
+                    if (isSelected)
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.8),
+                      ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isSelected)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 6),
+                        child: Icon(
+                          Icons.tag_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    Text(
+                      category == 'All' ? 'All Notes' : category,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -476,17 +731,17 @@ class _NotesListScreenState extends State<NotesListScreen> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: const Color(0xFFFDD85D).withOpacity(0.3),
+              color: const Color(0xFFD4E7F0).withOpacity(0.4),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                color: const Color(0xFFFDD85D).withOpacity(0.5),
+                color: const Color(0xFF8AB4D5).withOpacity(0.3),
                 width: 2,
               ),
             ),
             child: const Icon(
               Icons.sticky_note_2_outlined,
               size: 80,
-              color: Color(0xFFFDC921),
+              color: Color(0xFF8AB4D5),
             ),
           ),
           const SizedBox(height: 32),

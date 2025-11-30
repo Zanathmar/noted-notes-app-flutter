@@ -45,27 +45,36 @@ class StickyNoteCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.9),
             width: 2,
           ),
           boxShadow: [
+            // Main 3D shadow (bottom-right)
             BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.8),
+              offset: const Offset(4, 4),
+              blurRadius: 0,
               spreadRadius: 0,
             ),
+            // Depth shadow
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: Colors.black.withOpacity(0.08),
+              offset: const Offset(8, 8),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+            // Inner highlight (top-left)
+            BoxShadow(
+              color: Colors.white.withOpacity(0.5),
+              offset: const Offset(-1, -1),
+              blurRadius: 0,
               spreadRadius: 0,
             ),
           ],
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -78,17 +87,16 @@ class StickyNoteCard extends StatelessWidget {
                   child: Text(
                     note.title,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                       height: 1.3,
-                      letterSpacing: 0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
                     showDialog(
@@ -119,7 +127,6 @@ class StickyNoteCard extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Icon
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -133,7 +140,6 @@ class StickyNoteCard extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                // Title
                                 const Text(
                                   'Delete Note',
                                   style: TextStyle(
@@ -143,7 +149,6 @@ class StickyNoteCard extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                // Content
                                 const Text(
                                   'Are you sure you want to delete this note? This action cannot be undone.',
                                   textAlign: TextAlign.center,
@@ -154,7 +159,6 @@ class StickyNoteCard extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 24),
-                                // Buttons
                                 Row(
                                   children: [
                                     Expanded(
@@ -163,7 +167,7 @@ class StickyNoteCard extends StatelessWidget {
                                         style: TextButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(100),
                                             side: BorderSide(
                                               color: Colors.black.withOpacity(0.1),
                                               width: 1.5,
@@ -193,7 +197,7 @@ class StickyNoteCard extends StatelessWidget {
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(100),
                                           ),
                                         ),
                                         child: const Text(
@@ -215,65 +219,56 @@ class StickyNoteCard extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    padding: const EdgeInsets.all(4),
                     child: Icon(
                       Icons.close_rounded,
-                      size: 18,
-                      color: Colors.black.withOpacity(0.6),
+                      size: 16,
+                      color: Colors.black.withOpacity(0.5),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              note.content.isEmpty ? 'No content' : note.content,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black.withOpacity(0.65),
-                height: 1.5,
-                letterSpacing: 0.1,
+            const SizedBox(height: 10),
+            Expanded(
+              child: Text(
+                note.content.isEmpty ? 'No content' : note.content,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black.withOpacity(0.6),
+                  height: 1.4,
+                ),
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
-            // Date badge with icon
+            const SizedBox(height: 12),
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
+                    color: Colors.black.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.access_time_rounded,
-                        size: 14,
-                        color: Colors.black.withOpacity(0.5),
+                        size: 12,
+                        color: Colors.black.withOpacity(0.4),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
-                        _formatDateTime(note.updatedAt),
+                        _formatDateTime(note.updatedAt).split(',')[0],
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black.withOpacity(0.65),
-                          letterSpacing: 0.2,
+                          color: Colors.black.withOpacity(0.5),
                         ),
                       ),
                     ],

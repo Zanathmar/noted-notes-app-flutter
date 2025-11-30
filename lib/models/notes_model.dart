@@ -3,6 +3,8 @@ class Note {
   final String userId;
   final String title;
   final String content;
+  final String? category;
+  final int? colorIndex;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -11,6 +13,8 @@ class Note {
     required this.userId,
     required this.title,
     required this.content,
+    this.category,
+    this.colorIndex,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -21,6 +25,8 @@ class Note {
       userId: json['user_id'],
       title: json['title'] ?? '',
       content: json['content'] ?? '',
+      category: json['category'],
+      colorIndex: json['color_index'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -30,6 +36,8 @@ class Note {
     return {
       'title': title,
       'content': content,
+      'category': category,
+      'color_index': colorIndex,
       'updated_at': DateTime.now().toIso8601String(),
     };
   }
